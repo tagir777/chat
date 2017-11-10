@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="Случайный собеседник.">
+		<link rel="shortcut icon" href="/images/male.png" type="image/x-icon">
+		<link rel="stylesheet" href="./css/style.css">
+		<link rel="stylesheet" href="./css/reset.css">
+		<link rel="stylesheet" href="./css/media-queries.css">
+		<title>chat</title>
+		<script src="https://code.jquery.com/jquery-3.1.0.min.js" charset="utf-8"></script>
+		<style>
+			#chat{
+			height: 500px; /* высота нашего блока */
+			width: 100%; /* ширина нашего блока */
+			background: #FFFFFF; /* цвет фона, белый */
+			border: 1px solid #C1C1C1; /* размер и цвет границы блока */
+			overflow-y: scroll; /* прокрутка по вертикали */
+			overflow-x: hidden;
+			}
+			#de{
+			display:table;
+			height: 500px; /* высота нашего блока */
+			width: 100%; /* ширина нашего блока */
+
+			}
+		</style>
+	</head>
+	<body>
+		<div id="page">
+			<div id="header">
+				<div class="header-in wrapper">
+					<div class="nav">
+						<ul>
+							<li>
+								<a class="active" href="./index.php">Главная</a>
+							</li>
+							<li>
+								<a href="./ajax.html">Позвонить</a>
+							</li>
+						</ul>
+					</div>
+					<div class="nav-adaptive">
+						<span class="span1"></span>
+						<span class="span2"></span>
+						<span class="span3"></span>
+					</div>
+				</div>
+			</div>
+			<ul class="nav-adaptive-drop">
+				<li>
+					<a class="nav-drop-active" href="./index.php">Главная</a>
+				</li>
+				<li>
+					<a href="./ajax.html">Позвонить</a>
+				</li>
+				<li>
+					<a href="./xxx.html">Чат</a>
+				</li>
+			</ul>
+			<div id="intro">
+				<div class="intro_dark_main">
+					<div class="intro-text">
+						<h1 class="intro-title" style="margin-bottom: 20px; opacity: 1; bottom: -18px;">Чат</h1>
+					</div>
+				</div>
+			</div>
+			
+			<div id="comment">
+				<div class="comment_in wrapper">
+						<div id="chat">
+						</div>
+						<div class="massage_box">
+								<label for="text">Сообщение</label>
+								<input type="text" id="message_text" placeholder="Введите ваше сообщение" name="message_text"/>
+								<button  id="btnSend">Отправить сообщение</button>
+						</div>
+
+				</div>	  
+			</div>	
+
+			<div id="footer">
+				<div class="footer-in wrapper">
+					<div class="copyright">
+						<a href="./index.php">daimons.ru</a>
+					</div>
+					<div class="social-icon">
+						<a href="">
+							<img src="./images/footer-vk.png" alt="">
+						</a>
+						<a href="">
+							<img src="./images/footer-inst.png" alt="">
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+		<script src="./js/main.js"></script>
+		<script src="http://localhost:8008/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+			$(document).ready(function () {
+				var socket = io.connect('http://localhost:8008');
+				var messages = $("#chat");
+				var message_txt = $("#message_text")
+
+				function msgs(mes, userlast) {
+					var html = '<div class="c_box c_1">'+				
+								'<div class="c_img_1"><img src="./images/you.png" alt=""></div>'+
+								'<div class="c_text_1">'+
+								'<p class="c_name">'+mes+'</p>'+				
+								'</div>'+
+								'</div>';
+					messages
+					.append(html)
+					.scrollTop(messages[0].scrollHeight);
+				}
+					
+				function msgss(mes, userlast) {
+					var html = '<div class="c_box c_2">'+				
+								'<div class="c_img_2"><img src="./images/male.png" alt=""></div>'+
+								'<div class="c_text_2">'+
+								'<p class="c_name">'+mes+'</p>'+				
+								'</div>'+
+								'</div>';
+					messages
+					.append(html)
+					.scrollTop(messages[0].scrollHeight);
+				}
+				
+				function delet(mes, userlast) {
+					var html = '<div class="c_box c_2">'+				
+								'<div class="c_img_2"><img src="./images/male.png" alt=""></div>'+
+								'<div class="c_text_2">'+
+								'<p class="c_name"> Клиент удалился</p>'+				
+								'</div>'+
+								'</div>';
+					messages
+					.append(html)
+					.scrollTop(messages[0].scrollHeight);
+				}
+
+
+				socket.on('Connect', function(){					
+					var pre ='<div id="de"><div class="pre"><div class="preloader"><img src="./images/preloader.gif" alt=""><p>Поиск собеседника ...</p></div></div></div>';
+					$("div.massage_box").hide()
+					messages
+					.append(pre)
+
+				});
+
+				socket.on('newUser', function(userName){
+					$("#de").remove()
+					$("div.massage_box").show()
+				});
+				
+				socket.on('userName', function(userName){
+					$("div.massage_box").show()
+				});
+
+
+				socket.on('userDel', function(){ // Думаю тут понятно уже =)
+					delet();
+					message_txt.focus();
+				});
+
+				socket.on('messageToClients', function(data, userlast){
+					msgss(data.mes, userlast);
+					message_txt.focus();
+				});
+
+				socket.on('messageToMe', function(data, userlast){
+					msgs(data.mes, userlast);
+					message_txt.focus();
+				});
+				
+				document.querySelector('#message_text').onkeypress = function(e) {
+					var text = $("#message_text").val();
+					if (text.length <= 0)
+					return;
+					if (e.which == '13') {
+					socket.emit("message", {mes: text});
+					document.querySelector('#message_text').value = '';
+				}};
+
+				$("#btnSend").click(function () {
+					var text = $("#message_text").val();
+					if (text.length <= 0)
+					return;
+					message_txt.val("");
+					socket.emit("message", {mes: text});
+				});
+				
+			});
+		</script>
+	</body>
+</html>
